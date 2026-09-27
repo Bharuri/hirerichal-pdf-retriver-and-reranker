@@ -1,0 +1,4 @@
+duckdb>=1.4
+pypdf>=5
+streamlit>=1.40
+sentence-transformers>=3.0

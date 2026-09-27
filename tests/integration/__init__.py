@@ -1,0 +1,1 @@
+"""Local integration tests using temporary PDFs and DuckDB files."""
