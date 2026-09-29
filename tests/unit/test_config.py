@@ -18,7 +18,8 @@ def test_local_defaults_are_relative_to_project_root_and_loopback_only(tmp_path:
     assert settings.embedding_provider == "sentence-transformers"
     assert settings.embedding_model == "sentence-transformers/all-MiniLM-L6-v2"
     assert settings.embedding_model_version is None
-    assert settings.reranker_provider is None
+    assert settings.reranker_provider == "sentence-transformers-cross-encoder"
+    assert settings.reranker_model == "cross-encoder/ms-marco-MiniLM-L-6-v2"
 
 
 def test_chunk_and_retrieval_defaults_match_documented_local_values(tmp_path: Path) -> None:

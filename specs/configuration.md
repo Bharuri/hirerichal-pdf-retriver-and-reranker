@@ -53,8 +53,8 @@ Settings use `PDF_RAG_` environment variables. Values not supplied use these def
 | `PDF_RAG_EMBEDDING_PROVIDER` | `sentence-transformers` | Embedding adapter identifier. The supported adapter runs locally. |
 | `PDF_RAG_EMBEDDING_MODEL` | `sentence-transformers/all-MiniLM-L6-v2` | Sentence Transformers model identifier; configure together with provider. |
 | `PDF_RAG_EMBEDDING_MODEL_VERSION` | unset | Optional Sentence Transformers model revision to pin. If omitted, the resolved model commit is recorded when available. |
-| `PDF_RAG_RERANKER_PROVIDER` | unset | Optional reranker adapter; supported value: `sentence-transformers-cross-encoder`. |
-| `PDF_RAG_RERANKER_MODEL` | unset | Optional CrossEncoder model identifier; configure together with provider. |
+| `PDF_RAG_RERANKER_PROVIDER` | `sentence-transformers-cross-encoder` | Reranker adapter. |
+| `PDF_RAG_RERANKER_MODEL` | `cross-encoder/ms-marco-MiniLM-L-6-v2` | CrossEncoder model identifier. |
 | `PDF_RAG_RERANKER_MODEL_VERSION` | unset | Optional reranker model revision/version metadata. |
 
 Relative paths resolve from the repository root; absolute paths may be supplied locally but shall not be committed to source control. The configuration loader does not read or retain API-key values. Any selected hosted adapter must obtain credentials directly from a protected environment variable and must never log or display them.

@@ -39,8 +39,8 @@ class Settings:
     embedding_provider: str | None = "sentence-transformers"
     embedding_model: str | None = "sentence-transformers/all-MiniLM-L6-v2"
     embedding_model_version: str | None = None
-    reranker_provider: str | None = None
-    reranker_model: str | None = None
+    reranker_provider: str | None = "sentence-transformers-cross-encoder"
+    reranker_model: str | None = "cross-encoder/ms-marco-MiniLM-L-6-v2"
     reranker_model_version: str | None = None
 
     @classmethod
@@ -109,8 +109,16 @@ class Settings:
             embedding_model_version=_optional(
                 values, "PDF_RAG_EMBEDDING_MODEL_VERSION"
             ),
-            reranker_provider=_optional(values, "PDF_RAG_RERANKER_PROVIDER"),
-            reranker_model=_optional(values, "PDF_RAG_RERANKER_MODEL"),
+            reranker_provider=_optional(
+                values,
+                "PDF_RAG_RERANKER_PROVIDER",
+                "sentence-transformers-cross-encoder",
+            ),
+            reranker_model=_optional(
+                values,
+                "PDF_RAG_RERANKER_MODEL",
+                "cross-encoder/ms-marco-MiniLM-L-6-v2",
+            ),
             reranker_model_version=_optional(
                 values, "PDF_RAG_RERANKER_MODEL_VERSION"
             ),
