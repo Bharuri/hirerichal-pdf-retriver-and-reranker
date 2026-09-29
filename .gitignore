@@ -5,10 +5,6 @@ __pycache__/
 .ruff_cache/
 .vscode/
 
-data/duckdb/*.duckdb
-data/duckdb/*.wal
-data/artifacts/
-data/pdfs/*.pdf
 
 *.log
 .env
