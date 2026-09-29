@@ -42,7 +42,6 @@ class IngestionFailure:
     reason: str
     chunk_id: str | None = None
 
-
 @dataclass(frozen=True)
 class IngestionSummary:
     """Counts and failures from one manual PDF indexing run."""
