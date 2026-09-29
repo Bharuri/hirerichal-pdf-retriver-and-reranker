@@ -6,6 +6,7 @@ import logging
 from dataclasses import dataclass
 from typing import Literal
 
+
 from config import Settings
 from db.duckdb import DuckDBError, DuckDBStore
 from ingestion.indexer import EmbeddingProvider, create_embedding_provider
