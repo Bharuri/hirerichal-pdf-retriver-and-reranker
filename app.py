@@ -362,7 +362,7 @@ def main(streamlit_module: object | None = None, settings: Settings | None = Non
 			)
 			use_reranker = st.checkbox(
 				"Apply configured reranker (hybrid only)",
-				value=False,
+				value=True,
 				disabled=not reranker_available,
 				key="use_reranker",
 			)
