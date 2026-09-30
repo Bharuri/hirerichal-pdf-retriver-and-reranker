@@ -1,4 +1,4 @@
-"""Manual PDF-to-DuckDB ingestion command; run with ``python -m ingestion.main``."""
+"""Manual document-to-DuckDB ingestion command; run with ``python -m ingestion.main``."""
 
 from __future__ import annotations
 
@@ -44,7 +44,7 @@ class IngestionFailure:
 
 @dataclass(frozen=True)
 class IngestionSummary:
-    """Counts and failures from one manual PDF indexing run."""
+    """Counts and failures from one manual document indexing run."""
 
     run_id: str
     status: str
@@ -61,13 +61,18 @@ class IngestionSummary:
     def failure_count(self) -> int:
         return len(self.failures)
 
+    @property
+    def discovered_document_count(self) -> int:
+        """Return the number of discovered PDF and text documents."""
+        return self.discovered_pdf_count
+
 
 def run_ingestion(
     settings: Settings | None = None,
     *,
     embedding_provider: EmbeddingProvider | None = None,
 ) -> IngestionSummary:
-    """Extract, structure, chunk, store and embed PDFs from the configured corpus.
+    """Extract, structure, chunk, store and embed documents from the configured corpus.
 
     The routine is intended for explicit/manual invocation, not Streamlit startup.
     Existing document indexes and compatible embeddings are reused when their
@@ -86,7 +91,7 @@ def run_ingestion(
     started_at = datetime.now(timezone.utc)
     discovered_count = len(corpus.documents)
     logger.info(
-        "Manual ingestion discovered %d PDF(s) in the configured corpus",
+        "Manual ingestion discovered %d document(s) in the configured corpus",
         discovered_count,
     )
     if discovered_count == 0:
@@ -115,7 +120,7 @@ def run_ingestion(
         with DuckDBStore(active_settings.database_path) as store:
             for document in corpus.documents:
                 if document.status in {PdfStatus.UNREADABLE, PdfStatus.ENCRYPTED} or not document.pages:
-                    reason = f"PDF extraction was {document.status.value}; no indexable pages were available."
+                    reason = f"Document extraction was {document.status.value}; no indexable pages were available."
                     failures.append(IngestionFailure(document.source_path, reason))
                     logger.warning("Skipping %s: %s", document.source_path, reason)
                     continue
@@ -200,7 +205,7 @@ def run_ingestion(
                 except Exception as error:
                     reason = f"Document indexing failed ({type(error).__name__})."
                     failures.append(IngestionFailure(document.source_path, reason))
-                    logger.exception("Could not index PDF %s", document.source_path)
+                    logger.exception("Could not index document %s", document.source_path)
 
             finished_at = datetime.now(timezone.utc)
             status = _run_status(indexed_document_count, failures)
@@ -307,7 +312,7 @@ def main() -> int:
 
     print(
         "Ingestion "
-        f"{summary.status}: PDFs={summary.discovered_pdf_count}, "
+        f"{summary.status}: documents={summary.discovered_document_count}, "
         f"documents={summary.indexed_document_count}, chunks={summary.chunk_count}, "
         f"embeddings={summary.embedding_count}, failures={summary.failure_count}"
     )

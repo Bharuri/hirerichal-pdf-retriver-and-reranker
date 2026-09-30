@@ -1,4 +1,4 @@
-"""Local PDF discovery and page-aware extraction for the retrieval MVP."""
+"""Local PDF/text discovery and page-aware extraction for the retrieval MVP."""
 
 from __future__ import annotations
 
@@ -66,7 +66,7 @@ class PdfReadResult:
 
 @dataclass(frozen=True)
 class CorpusReadResult:
-    """Results of extracting all discovered PDFs; failures remain per-document."""
+    """Results of extracting all discovered documents; failures remain per-document."""
 
     documents: tuple[PdfReadResult, ...]
 
@@ -87,6 +87,28 @@ def discover_pdfs(corpus_dir: str | Path) -> tuple[Path, ...]:
     discovered: list[tuple[str, Path]] = []
     for candidate in root.rglob("*"):
         if candidate.suffix.lower() != ".pdf" or not candidate.is_file():
+            continue
+        resolved = candidate.resolve()
+        if not resolved.is_relative_to(root):
+            continue
+        discovered.append((resolved.relative_to(root).as_posix().casefold(), resolved))
+
+    discovered.sort(key=lambda item: item[0])
+    return tuple(path for _, path in discovered)
+
+
+def discover_documents(corpus_dir: str | Path) -> tuple[Path, ...]:
+    """Return supported PDF and UTF-8 text files in stable relative-path order."""
+    root = Path(corpus_dir).expanduser().resolve()
+    if not root.exists():
+        raise PdfCorpusError("Configured document corpus directory does not exist.")
+    if not root.is_dir():
+        raise PdfCorpusError("Configured document corpus path is not a directory.")
+
+    supported_suffixes = {".pdf", ".txt"}
+    discovered: list[tuple[str, Path]] = []
+    for candidate in root.rglob("*"):
+        if candidate.suffix.lower() not in supported_suffixes or not candidate.is_file():
             continue
         resolved = candidate.resolve()
         if not resolved.is_relative_to(root):
@@ -205,11 +227,67 @@ def extract_pdf(pdf_path: str | Path, corpus_dir: str | Path) -> PdfReadResult:
     )
 
 
-def extract_corpus(corpus_dir: str | Path) -> CorpusReadResult:
-    """Extract discovered PDFs independently so one broken file cannot stop the rest."""
+def extract_text(text_path: str | Path, corpus_dir: str | Path) -> PdfReadResult:
+    """Extract one UTF-8 text file as a single page-like document."""
     root = Path(corpus_dir).expanduser().resolve()
-    pdf_paths = discover_pdfs(root)
-    documents = tuple(extract_pdf(path, root) for path in pdf_paths)
+    source = Path(text_path).expanduser().resolve()
+    if not source.is_relative_to(root):
+        raise PdfCorpusError("Text path is outside the configured corpus directory.")
+    if source.suffix.lower() != ".txt":
+        raise PdfCorpusError("Only TXT files can be extracted.")
+
+    relative_path = source.relative_to(root).as_posix()
+    document_id = hashlib.sha256(relative_path.encode("utf-8")).hexdigest()
+    try:
+        content_sha256 = _file_sha256(source)
+        text = source.read_text(encoding="utf-8-sig")
+    except (OSError, UnicodeError):
+        return PdfReadResult(
+            document_id=document_id,
+            source_filename=source.name,
+            source_path=relative_path,
+            content_sha256=None,
+            page_count=0,
+            metadata=_empty_metadata(),
+            pages=(),
+            status=PdfStatus.UNREADABLE,
+            warnings=("text_read_failed",),
+        )
+
+    warnings: list[str] = []
+    page_warnings: list[str] = []
+    if not text.strip():
+        status = PdfStatus.EMPTY
+        page_warnings.append("no_extractable_text")
+        warnings.append("text_file_empty")
+    elif len(text.strip()) < 20:
+        status = PdfStatus.PARTIAL
+        page_warnings.append("little_extractable_text")
+        warnings.append("text_file_little_text")
+    else:
+        status = PdfStatus.EXTRACTED
+
+    return PdfReadResult(
+        document_id=document_id,
+        source_filename=source.name,
+        source_path=relative_path,
+        content_sha256=content_sha256,
+        page_count=1,
+        metadata=_empty_metadata(),
+        pages=(PageText(1, text, tuple(page_warnings)),),
+        status=status,
+        warnings=tuple(warnings),
+    )
+
+
+def extract_corpus(corpus_dir: str | Path) -> CorpusReadResult:
+    """Extract supported documents independently so one broken file cannot stop the rest."""
+    root = Path(corpus_dir).expanduser().resolve()
+    paths = discover_documents(root)
+    documents = tuple(
+        extract_pdf(path, root) if path.suffix.lower() == ".pdf" else extract_text(path, root)
+        for path in paths
+    )
     return CorpusReadResult(documents)
 
 

@@ -4,7 +4,15 @@ from pathlib import Path
 
 import pytest
 
-from ingestion.pdf_loader import PdfCorpusError, PdfStatus, discover_pdfs, extract_corpus, extract_pdf
+from ingestion.pdf_loader import (
+    PdfCorpusError,
+    PdfStatus,
+    discover_documents,
+    discover_pdfs,
+    extract_corpus,
+    extract_pdf,
+    extract_text,
+)
 
 
 def make_pdf(path: Path, page_texts: list[str], *, title: str | None = None) -> None:
@@ -65,6 +73,37 @@ def test_discovery_finds_only_pdfs_recursively_in_stable_order(tmp_path: Path) -
     discovered = discover_pdfs(corpus)
 
     assert [path.relative_to(corpus).as_posix() for path in discovered] == ["nested/A.PDF", "z.pdf"]
+
+
+def test_document_discovery_includes_pdfs_and_text_files_in_stable_order(tmp_path: Path) -> None:
+    corpus = tmp_path / "doc"
+    make_pdf(corpus / "z.pdf", ["last page text that is long enough"])
+    (corpus / "nested" / "A.txt").parent.mkdir(parents=True)
+    (corpus / "nested" / "A.txt").write_text("first text document", encoding="utf-8")
+
+    discovered = discover_documents(corpus)
+
+    assert [path.relative_to(corpus).as_posix() for path in discovered] == [
+        "nested/A.txt",
+        "z.pdf",
+    ]
+
+
+def test_text_extraction_returns_one_page_and_stable_metadata(tmp_path: Path) -> None:
+    corpus = tmp_path / "doc"
+    text_path = corpus / "notes.txt"
+    text_path.parent.mkdir(parents=True)
+    text_path.write_text("PostgreSQL and Iceberg performance notes.", encoding="utf-8")
+
+    result = extract_text(text_path, corpus)
+
+    assert result.status is PdfStatus.EXTRACTED
+    assert result.source_filename == "notes.txt"
+    assert result.source_path == "notes.txt"
+    assert result.page_count == 1
+    assert result.pages[0].page_number == 1
+    assert result.pages[0].text == "PostgreSQL and Iceberg performance notes."
+    assert result.content_sha256 is not None
 
 
 def test_missing_or_non_directory_corpus_has_a_clear_error_without_path_leak(tmp_path: Path) -> None:
