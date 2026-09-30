@@ -446,6 +446,5 @@ def main(streamlit_module: object | None = None, settings: Settings | None = Non
 def _format_score(score: float | None) -> str:
 	return "—" if score is None else f"{score:.6g}"
 
-
 if __name__ == "__main__":
 	main()
