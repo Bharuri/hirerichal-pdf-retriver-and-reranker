@@ -30,7 +30,7 @@ def test_chunk_and_retrieval_defaults_match_documented_local_values(tmp_path: Pa
     assert (settings.hybrid_top_k, settings.reranker_top_k) == (10, 5)
     assert settings.hybrid_fusion_method == "rrf"
     assert settings.rrf_k == 60
-    assert (settings.hybrid_semantic_weight, settings.hybrid_keyword_weight) == (1.0, 1.0)
+    assert (settings.hybrid_semantic_weight, settings.hybrid_keyword_weight) == (0.75, 0.25)
     assert (settings.context_max_chunks, settings.context_max_characters) == (2, 4000)
 
 

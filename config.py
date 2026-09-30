@@ -34,8 +34,8 @@ class Settings:
     context_max_characters: int = 4000
     hybrid_fusion_method: str = "rrf"
     rrf_k: int = 60
-    hybrid_semantic_weight: float = 1.0
-    hybrid_keyword_weight: float = 1.0
+    hybrid_semantic_weight: float = 0.75
+    hybrid_keyword_weight: float = 0.25
     embedding_provider: str | None = "sentence-transformers"
     embedding_model: str | None = "sentence-transformers/all-MiniLM-L6-v2"
     embedding_model_version: str | None = None
@@ -93,10 +93,10 @@ class Settings:
             ).strip().lower(),
             rrf_k=_integer(values, "PDF_RAG_RRF_K", 60),
             hybrid_semantic_weight=_floating(
-                values, "PDF_RAG_HYBRID_SEMANTIC_WEIGHT", 1.0
+                values, "PDF_RAG_HYBRID_SEMANTIC_WEIGHT", 0.75
             ),
             hybrid_keyword_weight=_floating(
-                values, "PDF_RAG_HYBRID_KEYWORD_WEIGHT", 1.0
+                values, "PDF_RAG_HYBRID_KEYWORD_WEIGHT", 0.25
             ),
             embedding_provider=_optional(
                 values, "PDF_RAG_EMBEDDING_PROVIDER", "sentence-transformers"

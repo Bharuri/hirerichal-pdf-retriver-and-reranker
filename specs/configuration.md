@@ -45,8 +45,8 @@ Settings use `PDF_RAG_` environment variables. Values not supplied use these def
 | `PDF_RAG_HYBRID_TOP_K` | `10` | Fused candidate count. |
 | `PDF_RAG_HYBRID_FUSION_METHOD` | `rrf` | Fusion method: `rrf` or `weighted_sum`. |
 | `PDF_RAG_RRF_K` | `60` | Positive RRF rank constant. |
-| `PDF_RAG_HYBRID_SEMANTIC_WEIGHT` | `1.0` | Non-negative semantic contribution to fusion. |
-| `PDF_RAG_HYBRID_KEYWORD_WEIGHT` | `1.0` | Non-negative keyword contribution to fusion. |
+| `PDF_RAG_HYBRID_SEMANTIC_WEIGHT` | `0.75` | Non-negative semantic contribution to fusion. |
+| `PDF_RAG_HYBRID_KEYWORD_WEIGHT` | `0.25` | Non-negative keyword contribution to fusion. |
 | `PDF_RAG_RERANKER_TOP_K` | `5` | Final reranked candidate count. |
 | `PDF_RAG_CONTEXT_MAX_CHUNKS` | `2` | Maximum supporting context chunks attached to each result. Set to `0` to disable expansion. |
 | `PDF_RAG_CONTEXT_MAX_CHARACTERS` | `4000` | Maximum total text characters in supporting chunks attached to each result. |
