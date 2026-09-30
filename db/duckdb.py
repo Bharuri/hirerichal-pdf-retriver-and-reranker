@@ -10,7 +10,6 @@ from datetime import datetime, timezone
 from numbers import Real
 from pathlib import Path
 from typing import Any, Sequence
-
 import duckdb
 
 from ingestion.chunker import RetrievalChunk

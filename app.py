@@ -24,6 +24,7 @@ from retrieval.semantic import semantic_search
 
 logger = logging.getLogger(__name__)
 SearchMode = Literal["keyword", "semantic", "hybrid"]
+RERANKER_CANDIDATE_POOL_SIZE = 200
 
 
 class SearchApplicationError(RuntimeError):
@@ -160,6 +161,11 @@ def search_index(
 				if not hits:
 					note = "No compatible embeddings or semantic matches were found in the manual index."
 			else:
+				retrieval_top_k = (
+					max(top_k, RERANKER_CANDIDATE_POOL_SIZE)
+					if use_reranker
+					else top_k
+				)
 				provider = embedding_provider
 				if provider is None and settings.embedding_provider is not None:
 					try:
@@ -175,7 +181,9 @@ def search_index(
 						store,
 						normalized_query,
 						provider,
-						top_k=top_k,
+						top_k=retrieval_top_k,
+						keyword_top_k=retrieval_top_k,
+						semantic_top_k=retrieval_top_k,
 						settings=settings,
 					)
 				except RetrievalError as error:
@@ -186,7 +194,13 @@ def search_index(
 						type(error).__name__,
 					)
 					hits = hybrid_search(
-						store, normalized_query, None, top_k=top_k, settings=settings
+						store,
+						normalized_query,
+						None,
+						top_k=retrieval_top_k,
+						keyword_top_k=retrieval_top_k,
+						semantic_top_k=retrieval_top_k,
+						settings=settings,
 					)
 					note = "Semantic retrieval failed; showing keyword-only results."
 
@@ -207,10 +221,12 @@ def search_index(
 					top_k=top_k,
 					settings=settings,
 				)
-				hits = rerank_result.candidates
+				hits = rerank_result.candidates[:top_k]
 				reranker_status = rerank_result.status
 				if rerank_result.reason:
 					note = rerank_result.reason
+			elif mode == "hybrid":
+				hits = hits[:top_k]
 
 			if expand_hierarchy and hits:
 				hits = expand_context(hits, store, settings=settings)
