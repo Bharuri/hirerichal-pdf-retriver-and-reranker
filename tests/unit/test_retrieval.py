@@ -51,6 +51,21 @@ def test_query_normalization_preserves_technical_identifiers() -> None:
     assert normalize_query(" \n\t ") == ""
 
 
+def test_query_terms_remove_common_words_but_keep_technical_terms() -> None:
+    normalized = normalize_query(
+        "How is performance optimization compared in Iceberg vs PostgreSQL?"
+    )
+
+    assert query_terms(normalized) == (
+        "performance",
+        "optimization",
+        "compared",
+        "iceberg",
+        "vs",
+        "postgresql",
+    )
+
+
 def test_rrf_fusion_deduplicates_and_preserves_channel_ranks_and_scores() -> None:
     keyword = (_hit("chunk-1", 1, 4.0), _hit("chunk-2", 2, 2.0))
     semantic = (_hit("chunk-2", 1, 0.9), _hit("chunk-1", 2, 0.8))

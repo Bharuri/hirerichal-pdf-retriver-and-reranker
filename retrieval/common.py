@@ -11,6 +11,46 @@ from ingestion.chunker import RetrievalChunk
 
 
 _QUERY_TERM = re.compile(r"[\w+#]+(?:[./:-][\w+#]+)*", re.UNICODE)
+_KEYWORD_STOP_WORDS = frozenset(
+    {
+        "a",
+        "an",
+        "and",
+        "are",
+        "be",
+        "been",
+        "being",
+        "can",
+        "could",
+        "did",
+        "do",
+        "does",
+        "for",
+        "from",
+        "how",
+        "in",
+        "is",
+        "may",
+        "might",
+        "of",
+        "on",
+        "or",
+        "the",
+        "to",
+        "was",
+        "were",
+        "what",
+        "when",
+        "where",
+        "which",
+        "who",
+        "whom",
+        "why",
+        "will",
+        "with",
+        "would",
+    }
+)
 
 
 class RetrievalError(RuntimeError):
@@ -75,5 +115,9 @@ def normalize_query(query: str) -> str:
 
 
 def query_terms(normalized_query: str) -> tuple[str, ...]:
-    """Extract distinct technical terms without stemming or stop-word removal."""
-    return tuple(dict.fromkeys(_QUERY_TERM.findall(normalized_query)))
+    """Extract distinct technical terms without stemming."""
+    return tuple(
+        term
+        for term in dict.fromkeys(_QUERY_TERM.findall(normalized_query))
+        if term not in _KEYWORD_STOP_WORDS
+    )
